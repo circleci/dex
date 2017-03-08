@@ -1,4 +1,4 @@
-FROM alpine:3.4
+FROM golang:alpine
 
 MAINTAINER Ed Rooth <ed.rooth@coreos.com>
 MAINTAINER Eric Chiang <eric.chiang@coreos.com>
