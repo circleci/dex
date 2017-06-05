@@ -4,33 +4,22 @@ jobs:
     docker:
       # CircleCI Go images available at: https://hub.docker.com/r/circleci/golang/
       - image: circleci/golang:1.8
-
     working_directory: /go/src/github.com/coreos/dex
-
     steps:
       - checkout
-
-  get_postgres:
-    docker:
-      - image: circleci/postgres:9.4.12-alpine
-    working_directory: /go/src/github.com/coreos/dex
-
   install_ldap:
     docker:
       - image: circleci/postgres:9.4.12-alpine
     working_directory: /go/src/github.com/coreos/dex
-
     steps:
-      - run: sudo -E apt-get install -y --force-yes slapd time ldap-utils
+      - run: apt-get install -y --force-yes slapd time ldap-utils
       - run:
           name: Start LDAP
           command: sudo /etc/init.d/slapd stop
-
   unit_tests:
     docker:
       - image: circleci/golang:1.8
       - image: circleci/postgres:9.4.12-alpine
-
     working_directory: /go/src/github.com/coreos/dex
     environment:
       TEST_RESULTS: /tmp/test-results
@@ -39,7 +28,6 @@ jobs:
       DEX_POSTGRES_HOST: localhost
       DEX_LDAP_TESTS: 1
       DEBIAN_FRONTEND: noninteractive
-
     steps:
       - run: go get -u github.com/golang/lint/golint
       - run: make testall
@@ -50,10 +38,8 @@ workflows:
   build_test:
     jobs:
       - checkout_code
-      - get_postgres
       - install_ldap
       - unit_tests:
           requires:
             - checkout_code
-            - get_postgres
             - install_ldap
