@@ -14,22 +14,10 @@ jobs:
           key: v1-repo-{{ checksum ".circle-sha" }}
           paths:
             - /go/src/github.com/coreos/dex
-  install_ldap:
-    docker:
-      - image: circleci/golang:1.8
-    working_directory: /go/src/github.com/coreos/dex
-    steps:
-      - run: sudo -E apt-get install -y --force-yes slapd time ldap-utils
-      - run:
-          name: Start LDAP
-          command: sudo /etc/init.d/slapd stop
   unit_tests:
     docker:
       - image: circleci/golang:1.8
       - image: circleci/postgres:9.4.12-alpine
-        environment:
-           POSTGRES_USER: root
-           POSTGRES_DB: circle_test
     working_directory: /go/src/github.com/coreos/dex
     environment:
       TEST_RESULTS: /tmp/test-results
@@ -39,6 +27,10 @@ jobs:
       DEX_LDAP_TESTS: 1
       DEBIAN_FRONTEND: noninteractive
     steps:
+      - run: sudo -E apt-get install -y --force-yes slapd time ldap-utils
+      - run:
+          name: Start LDAP
+          command: sudo /etc/init.d/slapd stop
       - run:
           name: save SHA to a file
           command: echo $CIRCLE_SHA1 > .circle-sha
@@ -54,8 +46,6 @@ workflows:
   build_test:
     jobs:
       - checkout_code
-      - install_ldap
       - unit_tests:
           requires:
             - checkout_code
-            - install_ldap
