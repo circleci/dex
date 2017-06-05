@@ -2,11 +2,18 @@ version: 2
 jobs:
   checkout_code:
     docker:
-      # CircleCI Go images available at: https://hub.docker.com/r/circleci/golang/
       - image: circleci/golang:1.8
     working_directory: /go/src/github.com/coreos/dex
     steps:
       - checkout
+      - run: make
+      - run:
+          name: save SHA to a file
+          command: echo $CIRCLE_SHA1 > .circle-sha
+      - save_cache:
+          key: v1-repo-{{ checksum ".circle-sha" }}
+          paths:
+            - /go/src/github.com/coreos/dex
   install_ldap:
     docker:
       - image: circleci/golang:1.8
@@ -32,6 +39,12 @@ jobs:
       DEX_LDAP_TESTS: 1
       DEBIAN_FRONTEND: noninteractive
     steps:
+      - run:
+          name: save SHA to a file
+          command: echo $CIRCLE_SHA1 > .circle-sha
+      - restore_cache:
+          keys:
+            - v1-repo-{{ checksum ".circle-sha" }}
       - run: go get -u github.com/golang/lint/golint
       - run: make testall
 
