@@ -41,10 +41,20 @@ jobs:
       - run: make testall
 
   build_image:
+    # TODO: use an image that has docker client
     docker:
       - image: circleci/golang:1.8
     working_directory: /go/src/github.com/coreos/dex
     steps:
+      # TODO: move to a script
+      - run:
+          name: Install Docker client
+          command: |
+            set -x
+            VER="17.03.0-ce"
+            curl -L -o /tmp/docker-$VER.tgz https://get.docker.com/builds/Linux/x86_64/docker-$VER.tgz
+            tar -xz -C /tmp -f /tmp/docker-$VER.tgz
+            mv /tmp/docker/* /usr/bin
       - run:
           name: save SHA to a file
           command: echo $CIRCLE_SHA1 > .circle-sha
