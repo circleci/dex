@@ -40,6 +40,19 @@ jobs:
       - run: go get -u github.com/golang/lint/golint
       - run: make testall
 
+  build_image:
+    docker:
+      - image: circleci/golang:1.8
+    working_directory: /go/src/github.com/coreos/dex
+    steps:
+      - run:
+          name: save SHA to a file
+          command: echo $CIRCLE_SHA1 > .circle-sha
+      - restore_cache:
+          keys:
+            - v1-repo-{{ checksum ".circle-sha" }}
+      - run: sudo make docker-image
+
 workflows:
   version: 2
 
@@ -49,3 +62,17 @@ workflows:
       - unit_tests:
           requires:
             - checkout_code
+      - build_image:
+          requires:
+            - checkout_code
+
+
+deployment:
+  deploy:
+    branch: /(?!master).+/
+    commands:
+      - make docker-image
+  track-master:
+    branch: master
+    commands:
+      - make docker-image
