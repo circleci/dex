@@ -1,18 +1,24 @@
 version: 2
 jobs:
-  build:
+  checkout_code:
     docker:
-      # CircleCI Go images available at: https://hub.docker.com/r/circleci/golang/
       - image: circleci/golang:1.8
-
-      # CircleCI PostgreSQL images available at: https://hub.docker.com/r/circleci/postgres/
-      - image: circleci/postgres:9.4.12-alpine
-        environment:
-          POSTGRES_USER: root
-          POSTGRES_DB: circle_test
-
     working_directory: /go/src/github.com/coreos/dex
-
+    steps:
+      - checkout
+      - run: make
+      - run:
+          name: save SHA to a file
+          command: echo $CIRCLE_SHA1 > .circle-sha
+      - save_cache:
+          key: v1-repo-{{ checksum ".circle-sha" }}
+          paths:
+            - /go/src/github.com/coreos/dex
+  unit_tests:
+    docker:
+      - image: circleci/golang:1.8
+      - image: circleci/postgres:9.4.12-alpine
+    working_directory: /go/src/github.com/coreos/dex
     environment:
       TEST_RESULTS: /tmp/test-results
       DEX_POSTGRES_DATABASE: postgres
@@ -20,13 +26,26 @@ jobs:
       DEX_POSTGRES_HOST: localhost
       DEX_LDAP_TESTS: 1
       DEBIAN_FRONTEND: noninteractive
-
     steps:
-      - checkout
-
-      - run: go get -u github.com/golang/lint/golint
       - run: sudo -E apt-get install -y --force-yes slapd time ldap-utils
       - run:
           name: Start LDAP
           command: sudo /etc/init.d/slapd stop
+      - run:
+          name: save SHA to a file
+          command: echo $CIRCLE_SHA1 > .circle-sha
+      - restore_cache:
+          keys:
+            - v1-repo-{{ checksum ".circle-sha" }}
+      - run: go get -u github.com/golang/lint/golint
       - run: make testall
+
+workflows:
+  version: 2
+
+  build_test:
+    jobs:
+      - checkout_code
+      - unit_tests:
+          requires:
+            - checkout_code
