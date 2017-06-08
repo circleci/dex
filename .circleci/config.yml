@@ -40,7 +40,7 @@ jobs:
       - run: go get -u github.com/golang/lint/golint
       - run: make testall
 
-  build_dex_binary:
+  build_binary:
     docker:
       - image: golang:1.8.0-alpine
     working_directory: /go/src/github.com/coreos/dex
@@ -79,7 +79,9 @@ jobs:
       - run:
           name: Build dex Docker image
           command: |
-            VERSION ?= $(shell ./scripts/git-version)
+            SHORT_SHA=$(git rev-parse --short HEAD)
+
+            VERSION="0.1.${CIRCLE_BUILD_NUM}-${SHORT_SHA}"
 
             DOCKER_REPO=circleci/dex
             DOCKER_IMAGE=$(DOCKER_REPO):$(VERSION)
@@ -94,9 +96,12 @@ workflows:
       - unit_tests:
           requires:
             - checkout_code
-      - build_image:
+      - build_binary:
           requires:
             - checkout_code
+      - build_image:
+          requires:
+            - build_binary
 
 deployment:
   deploy:
