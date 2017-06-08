@@ -45,6 +45,10 @@ jobs:
       - image: golang:1.8.0-alpine
     working_directory: /go/src/github.com/coreos/dex
     steps:
+      # TODO: move to a script
+      - run:
+          name: save SHA to a file
+          command: echo $CIRCLE_SHA1 > .circle-sha
       - restore_cache:
           keys:
             - v1-repo-{{ checksum ".circle-sha" }}
