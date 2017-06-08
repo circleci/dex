@@ -40,6 +40,22 @@ jobs:
       - run: go get -u github.com/golang/lint/golint
       - run: make testall
 
+  build_dex_binary:
+    docker:
+      - image: golang:1.8.0-alpine
+    working_directory: /go/src/github.com/coreos/dex
+    steps:
+      - restore_cache:
+          keys:
+            - v1-repo-{{ checksum ".circle-sha" }}
+      - run: apk add --no-cache --update alpine-sdk
+      - run: make release-binary
+      - run: cp /go/bin/dex _output/bin/dex
+      - save_cache:
+          key: v1-binary-{{ checksum ".circle-sha" }}
+          paths:
+            - /go/src/github.com/coreos/dex/_output/bin/dex
+
   build_image:
     # TODO: use an image that has docker client
     docker:
@@ -53,6 +69,7 @@ jobs:
       - restore_cache:
           keys:
             - v1-repo-{{ checksum ".circle-sha" }}
+            - v1-binary-{{ checksum ".circle-sha" }}
       - setup_remote_docker
       - run:
           name: Install Docker client
@@ -60,10 +77,13 @@ jobs:
             set -x
             sudo curl -fsSLO https://get.docker.com/builds/Linux/x86_64/docker-17.05.0-ce.tgz && sudo tar --strip-components=1 -xvzf docker-17.05.0-ce.tgz -C /usr/local/bin
       - run:
-          name: Preserve remote Docker environment for sudo
+          name: Build dex Docker image
           command: |
-            sudo echo 'Defaults    env_keep += "DOCKER_HOST DOCKER_MACHINE_NAME DOCKER_TLS_VERIFY DOCKER_CERT_PATH"' | sudo tee -a /etc/sudoers.d/env_keep
-      - run: make docker-image
+            VERSION ?= $(shell ./scripts/git-version)
+
+            DOCKER_REPO=circleci/dex
+            DOCKER_IMAGE=$(DOCKER_REPO):$(VERSION)
+            docker build -t $(DOCKER_IMAGE) .
 
 workflows:
   version: 2
@@ -77,7 +97,6 @@ workflows:
       - build_image:
           requires:
             - checkout_code
-
 
 deployment:
   deploy:
