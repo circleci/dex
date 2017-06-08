@@ -59,6 +59,10 @@ jobs:
           command: |
             set -x
             sudo curl -fsSLO https://get.docker.com/builds/Linux/x86_64/docker-17.05.0-ce.tgz && sudo tar --strip-components=1 -xvzf docker-17.05.0-ce.tgz -C /usr/local/bin
+      - run:
+          name: Preserve remote Docker environment for sudo
+          command: |
+            sudo echo 'Defaults    env_keep += "DOCKER_HOST DOCKER_MACHINE_NAME DOCKER_TLS_VERIFY DOCKER_CERT_PATH"' | sudo tee -a /etc/sudoers.d/env_keep
       - run: sudo make docker-image
 
 workflows:
