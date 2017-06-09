@@ -56,7 +56,7 @@ jobs:
       - run: make release-binary
       - run: cp /go/bin/dex _output/bin/dex
       - save_cache:
-          key: v1-binary-{{ checksum ".circle-sha" }}
+          key: v1-binary-temp-{{ checksum ".circle-sha" }}
           paths:
             - /go/src/github.com/coreos/dex/_output/bin
 
@@ -73,7 +73,7 @@ jobs:
       - restore_cache:
           keys:
             - v1-repo-{{ checksum ".circle-sha" }}
-            - v1-binary-{{ checksum ".circle-sha" }}
+            - v1-binary-temp-{{ checksum ".circle-sha" }}
       - setup_remote_docker
       - run:
           name: Install Docker client
