@@ -58,7 +58,7 @@ jobs:
       - save_cache:
           key: v1-binary-{{ checksum ".circle-sha" }}
           paths:
-            - /go/src/github.com/coreos/dex/_output/bin/dex
+            - /go/src/github.com/coreos/dex/_output/bin
 
   build_image:
     # TODO: use an image that has docker client
