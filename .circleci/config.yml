@@ -53,7 +53,7 @@ jobs:
           keys:
             - v1-repo-{{ checksum ".circle-sha" }}
       - run: make release-binary
-      - run: cp /go/bin/dex _output/bin/dex
+      - run: mkdir -p _output/bin/dex && cp /go/bin/dex _output/bin/dex
       - setup_remote_docker
       - run:
           name: Install Docker client
