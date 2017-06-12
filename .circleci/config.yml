@@ -42,7 +42,7 @@ jobs:
 
   build_image:
     docker:
-      - image: golang:1.8.0-alpine
+      - image: circleci/golang:1.8.0-alpine
     working_directory: /go/src/github.com/coreos/dex
     steps:
       # TODO: move to a script
