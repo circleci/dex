@@ -98,3 +98,4 @@ deployment:
     branch: master
     commands:
       - make docker-image
+ 
