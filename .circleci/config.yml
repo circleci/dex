@@ -55,10 +55,6 @@ jobs:
       - run: apk add --no-cache --update alpine-sdk
       - run: make release-binary
       - run: cp /go/bin/dex _output/bin/dex
-      - save_cache:
-          key: v1-binary-temp-{{ checksum ".circle-sha" }}
-          paths:
-            - /go/src/github.com/coreos/dex/_output/bin
       - setup_remote_docker
       - run:
           name: Install Docker client
@@ -98,4 +94,3 @@ deployment:
     branch: master
     commands:
       - make docker-image
- 
