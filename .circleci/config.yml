@@ -42,7 +42,7 @@ jobs:
 
   build_image:
     docker:
-      - image: circleci/golang:1.8.0-alpine
+      - image: circleci/golang:1.8
     working_directory: /go/src/github.com/coreos/dex
     steps:
       # TODO: move to a script
@@ -52,7 +52,6 @@ jobs:
       - restore_cache:
           keys:
             - v1-repo-{{ checksum ".circle-sha" }}
-      - run: apk add --no-cache --update alpine-sdk
       - run: make release-binary
       - run: cp /go/bin/dex _output/bin/dex
       - setup_remote_docker
