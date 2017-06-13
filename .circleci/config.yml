@@ -97,9 +97,9 @@ workflows:
           requires:
             - checkout_code
       - deploy_image:
-          filters:
-            branches:
-              only: master
+          # filters:
+          #   branches:
+          #     only: master
           requires:
             - unit_tests
             - build_binary
