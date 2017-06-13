@@ -70,6 +70,8 @@ jobs:
       - restore_cache:
           keys:
             - v1-repo-{{ checksum ".circle-sha" }}
+      - restore_cache:
+          keys:
             - v1-binary-{{ checksum ".circle-sha" }}
       - setup_remote_docker
       - deploy:
