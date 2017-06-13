@@ -93,7 +93,7 @@ jobs:
             DOCKER_REPO=circleci/dex
             DOCKER_IMAGE=$DOCKER_REPO:$VERSION
             docker build -t $DOCKER_IMAGE .
-            docker login -u $DOCKER_LOGIN_USERNAME -p $DOCKER_LOGIN_PASSWORD
+            docker login -u $DOCKER_HUB_LOGIN -p $DOCKER_HUB_PASSWORD
             docker push $DOCKER_IMAGE
 
 workflows:
