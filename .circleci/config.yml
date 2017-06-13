@@ -55,7 +55,7 @@ jobs:
 
   deploy_image:
     docker:
-      - image: circleci/golang:1.8
+      - image: docker:17.05.0-ce
     working_directory: /go/src/github.com/coreos/dex
     steps:
       - restore_cache:
@@ -65,11 +65,6 @@ jobs:
           keys:
             - v1-binary-{{ .Environment.CIRCLE_SHA1 }}
       - setup_remote_docker
-      - deploy:
-          name: Install Docker client
-          command: |
-            set -x
-            sudo curl -fsSLO https://get.docker.com/builds/Linux/x86_64/docker-17.05.0-ce.tgz && sudo tar --strip-components=1 -xvzf docker-17.05.0-ce.tgz -C /usr/local/bin
       - deploy:
           name: Deploy dex Docker image
           command: /bin/bash -e scripts/circle-deploy
