@@ -40,7 +40,7 @@ jobs:
       - run: go get -u github.com/golang/lint/golint
       - run: make testall
 
-  build_image:
+  build_binary:
     docker:
       - image: circleci/golang:1.8
     working_directory: /go/src/github.com/coreos/dex
@@ -54,15 +54,36 @@ jobs:
             - v1-repo-{{ checksum ".circle-sha" }}
       - run: make release-binary
       - run: mkdir -p _output/bin/dex && cp /go/bin/dex _output/bin/dex
-      - setup_remote_docker
+      - save_cache:
+          key: v1-binary-{{ checksum ".circle-sha" }}
+          paths:
+            - /go/src/github.com/coreos/dex/_output/bin
+
+  deploy_image:
+    docker:
+      - image: circleci/golang:1.8
+    working_directory: /go/src/github.com/coreos/dex
+    steps:
       - run:
+          name: save SHA to a file
+          command: echo $CIRCLE_SHA1 > .circle-sha
+      - restore_cache:
+          keys:
+            - v1-repo-{{ checksum ".circle-sha" }}
+            - v1-binary-{{ checksum ".circle-sha" }}
+      - setup_remote_docker
+      - deploy:
           name: Install Docker client
           command: |
             set -x
             sudo curl -fsSLO https://get.docker.com/builds/Linux/x86_64/docker-17.05.0-ce.tgz && sudo tar --strip-components=1 -xvzf docker-17.05.0-ce.tgz -C /usr/local/bin
-      - run:
-          name: Build dex Docker image
+      - deploy:
+          name: Deploy dex Docker image
           command: |
+            # if [ "${CIRCLE_BRANCH}" != "master" ]; then
+            #   exit 0
+            # fi
+
             SHORT_SHA=$(git rev-parse --short HEAD)
 
             VERSION="0.1.${CIRCLE_BUILD_NUM}-${SHORT_SHA}"
@@ -70,6 +91,8 @@ jobs:
             DOCKER_REPO=circleci/dex
             DOCKER_IMAGE=$DOCKER_REPO:$VERSION
             docker build -t $DOCKER_IMAGE .
+            docker login -u $DOCKER_LOGIN_USERNAME -p $DOCKER_LOGIN_PASSWORD
+            docker push $DOCKER_IMAGE
 
 workflows:
   version: 2
@@ -80,16 +103,10 @@ workflows:
       - unit_tests:
           requires:
             - checkout_code
-      - build_image:
+      - build_binary:
           requires:
             - checkout_code
-
-deployment:
-  deploy:
-    branch: /(?!master).+/
-    commands:
-      - make docker-image
-  track-master:
-    branch: master
-    commands:
-      - make docker-image
+      - deploy_image:
+          requires:
+            - unit_tests
+            - build_binary
