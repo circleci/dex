@@ -11,6 +11,7 @@ jobs:
           key: v1-repo-{{ .Environment.CIRCLE_SHA1 }}
           paths:
             - /go/src/github.com/coreos/dex
+
   unit_tests:
     docker:
       - image: circleci/golang:1.8
@@ -42,8 +43,11 @@ jobs:
       - restore_cache:
           keys:
             - v1-repo-{{ .Environment.CIRCLE_SHA1 }}
-      - run: make release-binary
-      - run: mkdir -p _output/bin/dex && cp /go/bin/dex _output/bin/dex
+      - run:
+          name: Build dex binary
+          command: |
+            make release-binary
+            mkdir -p _output/bin/dex && cp /go/bin/dex _output/bin/dex
       - save_cache:
           key: v1-binary-{{ .Environment.CIRCLE_SHA1 }}
           paths:
