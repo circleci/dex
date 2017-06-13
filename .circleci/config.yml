@@ -7,11 +7,8 @@ jobs:
     steps:
       - checkout
       - run: make
-      - run:
-          name: save SHA to a file
-          command: echo $CIRCLE_SHA1 > .circle-sha
       - save_cache:
-          key: v1-repo-{{ checksum ".circle-sha" }}
+          key: v1-repo-{{ .Environment.CIRCLE_SHA1 }}
           paths:
             - /go/src/github.com/coreos/dex
   unit_tests:
@@ -31,12 +28,9 @@ jobs:
       - run:
           name: Start LDAP
           command: sudo /etc/init.d/slapd stop
-      - run:
-          name: save SHA to a file
-          command: echo $CIRCLE_SHA1 > .circle-sha
       - restore_cache:
           keys:
-            - v1-repo-{{ checksum ".circle-sha" }}
+            - v1-repo-{{ .Environment.CIRCLE_SHA1 }}
       - run: go get -u github.com/golang/lint/golint
       - run: make testall
 
@@ -45,17 +39,13 @@ jobs:
       - image: circleci/golang:1.8
     working_directory: /go/src/github.com/coreos/dex
     steps:
-      # TODO: move to a script
-      - run:
-          name: save SHA to a file
-          command: echo $CIRCLE_SHA1 > .circle-sha
       - restore_cache:
           keys:
-            - v1-repo-{{ checksum ".circle-sha" }}
+            - v1-repo-{{ .Environment.CIRCLE_SHA1 }}
       - run: make release-binary
       - run: mkdir -p _output/bin/dex && cp /go/bin/dex _output/bin/dex
       - save_cache:
-          key: v1-binary-{{ checksum ".circle-sha" }}
+          key: v1-binary-{{ .Environment.CIRCLE_SHA1 }}
           paths:
             - /go/src/github.com/coreos/dex/_output/bin
 
@@ -64,15 +54,12 @@ jobs:
       - image: circleci/golang:1.8
     working_directory: /go/src/github.com/coreos/dex
     steps:
-      - run:
-          name: save SHA to a file
-          command: echo $CIRCLE_SHA1 > .circle-sha
       - restore_cache:
           keys:
-            - v1-repo-{{ checksum ".circle-sha" }}
+            - v1-repo-{{ .Environment.CIRCLE_SHA1 }}
       - restore_cache:
           keys:
-            - v1-binary-{{ checksum ".circle-sha" }}
+            - v1-binary-{{ .Environment.CIRCLE_SHA1 }}
       - setup_remote_docker
       - deploy:
           name: Install Docker client
@@ -82,10 +69,6 @@ jobs:
       - deploy:
           name: Deploy dex Docker image
           command: |
-            if [ "${CIRCLE_BRANCH}" != "master" ]; then
-              exit 0
-            fi
-
             SHORT_SHA=$(git rev-parse --short HEAD)
 
             VERSION="0.1.${CIRCLE_BUILD_NUM}-${SHORT_SHA}"
@@ -110,6 +93,9 @@ workflows:
           requires:
             - checkout_code
       - deploy_image:
+          filters:
+            branches:
+              only: master
           requires:
             - unit_tests
             - build_binary
