@@ -7,13 +7,11 @@ jobs:
     steps:
       - checkout
       - run: make
-      - run:
-          name: save SHA to a file
-          command: echo $CIRCLE_SHA1 > .circle-sha
       - save_cache:
-          key: v1-repo-{{ checksum ".circle-sha" }}
+          key: v1-repo-{{ .Environment.CIRCLE_SHA1 }}
           paths:
             - /go/src/github.com/coreos/dex
+
   unit_tests:
     docker:
       - image: circleci/golang:1.8
@@ -31,14 +29,53 @@ jobs:
       - run:
           name: Start LDAP
           command: sudo /etc/init.d/slapd stop
-      - run:
-          name: save SHA to a file
-          command: echo $CIRCLE_SHA1 > .circle-sha
       - restore_cache:
           keys:
-            - v1-repo-{{ checksum ".circle-sha" }}
+            - v1-repo-{{ .Environment.CIRCLE_SHA1 }}
       - run: go get -u github.com/golang/lint/golint
       - run: make testall
+
+  build_binary:
+    docker:
+      - image: circleci/golang:1.8
+    working_directory: /go/src/github.com/coreos/dex
+    steps:
+      - restore_cache:
+          keys:
+            - v1-repo-{{ .Environment.CIRCLE_SHA1 }}
+      - run:
+          name: Build dex binary
+          command: |
+            make release-binary
+            mkdir -p _output/bin/dex && cp /go/bin/dex _output/bin/dex
+      - save_cache:
+          key: v1-binary-{{ .Environment.CIRCLE_SHA1 }}
+          paths:
+            - /go/src/github.com/coreos/dex/_output/bin
+
+  deploy_image:
+    docker:
+      - image: circleci/golang:1.8
+    working_directory: /go/src/github.com/coreos/dex
+    steps:
+      - restore_cache:
+          keys:
+            - v1-repo-{{ .Environment.CIRCLE_SHA1 }}
+      - restore_cache:
+          keys:
+            - v1-binary-{{ .Environment.CIRCLE_SHA1 }}
+      - setup_remote_docker
+      # `deploy` a special `run` step that only gets run once
+      #   even when parallelism is involved:
+      #   https://circleci.com/docs/2.0/configuration-reference/#deploy
+      - deploy:
+          name: Install Docker client
+          command: |
+            set -x
+            sudo curl -fsSLO https://get.docker.com/builds/Linux/x86_64/docker-17.05.0-ce.tgz && sudo tar --strip-components=1 -xvzf docker-17.05.0-ce.tgz -C /usr/local/bin
+      - deploy:
+          name: Deploy dex Docker image
+          command: ./scripts/circle-deploy
 
 workflows:
   version: 2
@@ -49,3 +86,13 @@ workflows:
       - unit_tests:
           requires:
             - checkout_code
+      - build_binary:
+          requires:
+            - checkout_code
+      - deploy_image:
+          filters:
+            branches:
+              only: master
+          requires:
+            - unit_tests
+            - build_binary

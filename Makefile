@@ -66,6 +66,10 @@ _output/bin/dex:
 docker-image: clean-release _output/bin/dex
 	@sudo docker build -t $(DOCKER_IMAGE) .
 
+.PHONY: circle-image
+circle-image: docker-image
+	@sudo docker tag $(DOCKER_IMAGE) circleci/dex
+
 .PHONY: proto
 proto: api/api.pb.go server/internal/types.pb.go
 
