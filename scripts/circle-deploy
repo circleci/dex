@@ -6,6 +6,11 @@ VERSION="0.1.${CIRCLE_BUILD_NUM}-${SHORT_SHA}"
 
 DOCKER_IMAGE=circleci/dex
 docker build -t $DOCKER_IMAGE .
+
+# quick sanity check to ensure image runs without error
+docker run $DOCKER_IMAGE
+
+# tag and deploy image to docker hub
 docker tag $DOCKER_IMAGE $DOCKER_IMAGE:$VERSION
 docker login -u $DOCKER_HUB_LOGIN -p $DOCKER_HUB_PASSWORD
 docker push $DOCKER_IMAGE
