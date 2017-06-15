@@ -47,7 +47,7 @@ jobs:
           name: Build dex binary
           command: |
             make release-binary
-            mkdir -p _output/bin/dex && cp /go/bin/dex _output/bin/dex
+            mkdir -p _output/bin && cp /go/bin/dex _output/bin
       - save_cache:
           key: v1-binary-{{ .Environment.CIRCLE_SHA1 }}
           paths:
