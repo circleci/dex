@@ -79,7 +79,6 @@ jobs:
 
 workflows:
   version: 2
-
   build_test:
     jobs:
       - checkout_code
