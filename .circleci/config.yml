@@ -25,7 +25,7 @@ jobs:
       DEX_LDAP_TESTS: 1
       DEBIAN_FRONTEND: noninteractive
     steps:
-      - run: sudo -E apt-get install -y --force-yes slapd time ldap-utils
+      - run: sudo apt-get update && sudo apt-get install -y --force-yes slapd time ldap-utils
       - run:
           name: Start LDAP
           command: sudo /etc/init.d/slapd stop
