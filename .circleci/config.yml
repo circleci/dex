@@ -22,7 +22,6 @@ jobs:
       DEX_POSTGRES_DATABASE: postgres
       DEX_POSTGRES_USER: postgres
       DEX_POSTGRES_HOST: localhost
-      DEX_LDAP_TESTS: 1
       DEBIAN_FRONTEND: noninteractive
     steps:
       - run: sudo apt-get update && sudo apt-get install -y --force-yes slapd time ldap-utils
