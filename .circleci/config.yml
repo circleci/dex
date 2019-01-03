@@ -2,7 +2,7 @@ version: 2
 jobs:
   checkout_code:
     docker:
-      - image: circleci/golang:1.8
+      - image: circleci/golang:1.9
     working_directory: /go/src/github.com/coreos/dex
     steps:
       - checkout
@@ -14,7 +14,7 @@ jobs:
 
   unit_tests:
     docker:
-      - image: circleci/golang:1.8
+      - image: circleci/golang:1.9
       - image: circleci/postgres:9.4.12-alpine
     working_directory: /go/src/github.com/coreos/dex
     environment:
@@ -22,10 +22,9 @@ jobs:
       DEX_POSTGRES_DATABASE: postgres
       DEX_POSTGRES_USER: postgres
       DEX_POSTGRES_HOST: localhost
-      DEX_LDAP_TESTS: 1
       DEBIAN_FRONTEND: noninteractive
     steps:
-      - run: sudo -E apt-get install -y --force-yes slapd time ldap-utils
+      - run: sudo apt-get update && sudo apt-get install -y --force-yes slapd time ldap-utils
       - run:
           name: Start LDAP
           command: sudo /etc/init.d/slapd stop
@@ -37,7 +36,7 @@ jobs:
 
   build_binary:
     docker:
-      - image: circleci/golang:1.8
+      - image: circleci/golang:1.9
     working_directory: /go/src/github.com/coreos/dex
     steps:
       - restore_cache:
@@ -55,7 +54,7 @@ jobs:
 
   deploy_image:
     docker:
-      - image: circleci/golang:1.8
+      - image: circleci/golang:1.9
     working_directory: /go/src/github.com/coreos/dex
     steps:
       - restore_cache:
@@ -65,9 +64,9 @@ jobs:
           keys:
             - v1-binary-{{ .Environment.CIRCLE_SHA1 }}
       - setup_remote_docker
-      # `deploy` a special `run` step that only gets run once
-      #   even when parallelism is involved:
-      #   https://circleci.com/docs/2.0/configuration-reference/#deploy
+      # `deploy` is a special step that only gets run once even when parallelism
+      # is involved:
+      # https://circleci.com/docs/2.0/configuration-reference/#deploy
       - deploy:
           name: Install Docker client
           command: |
