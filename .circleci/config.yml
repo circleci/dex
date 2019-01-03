@@ -2,7 +2,7 @@ version: 2
 jobs:
   checkout_code:
     docker:
-      - image: circleci/golang:1.8
+      - image: circleci/golang:1.9
     working_directory: /go/src/github.com/coreos/dex
     steps:
       - checkout
@@ -14,7 +14,7 @@ jobs:
 
   unit_tests:
     docker:
-      - image: circleci/golang:1.8
+      - image: circleci/golang:1.9
       - image: circleci/postgres:9.4.12-alpine
     working_directory: /go/src/github.com/coreos/dex
     environment:
@@ -37,7 +37,7 @@ jobs:
 
   build_binary:
     docker:
-      - image: circleci/golang:1.8
+      - image: circleci/golang:1.9
     working_directory: /go/src/github.com/coreos/dex
     steps:
       - restore_cache:
@@ -55,7 +55,7 @@ jobs:
 
   deploy_image:
     docker:
-      - image: circleci/golang:1.8
+      - image: circleci/golang:1.9
     working_directory: /go/src/github.com/coreos/dex
     steps:
       - restore_cache:
