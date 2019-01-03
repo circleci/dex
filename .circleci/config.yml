@@ -74,7 +74,7 @@ jobs:
             sudo curl -fsSLO https://get.docker.com/builds/Linux/x86_64/docker-17.05.0-ce.tgz && sudo tar --strip-components=1 -xvzf docker-17.05.0-ce.tgz -C /usr/local/bin
       - deploy:
           name: Deploy dex Docker image
-          command: source scripts/circle-deploy
+          command: scripts/circle-deploy
 
 workflows:
   version: 2

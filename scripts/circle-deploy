@@ -1,4 +1,5 @@
-#!/bin/bash -e
+#!/bin/bash
+set -ex
 
 SHORT_SHA=$(git rev-parse --short HEAD)
 
