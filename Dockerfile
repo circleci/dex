@@ -1,4 +1,4 @@
-FROM alpine:3.4
+FROM debian:stable-slim
 
 MAINTAINER Ed Rooth <ed.rooth@coreos.com>
 MAINTAINER Lucas Servén <lucas.serven@coreos.com>
@@ -9,7 +9,7 @@ MAINTAINER Rithu John <rithu.john@coreos.com>
 # experience when this doesn't work out of the box.
 #
 # OpenSSL is required so wget can query HTTPS endpoints for health checking.
-RUN apk add --update ca-certificates openssl
+RUN apt-get update && apt-get install -y ca-certificates openssl
 
 COPY _output/bin/dex /usr/local/bin/dex
 
